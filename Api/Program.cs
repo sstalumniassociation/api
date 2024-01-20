@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using Api.Services.V1;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
@@ -7,7 +8,11 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
 });
 
+builder.Services.AddGrpc();
+
 var app = builder.Build();
+
+app.MapGrpcService<UserServiceV1>();
 
 var sampleTodos = new Todo[]
 {

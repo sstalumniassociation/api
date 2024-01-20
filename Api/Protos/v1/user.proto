@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+import "google/protobuf/empty.proto";
+
+package user.v1;
+
+enum UserMemberType {
+  Exco = 0;
+  Associate = 1;
+  Affiliate = 2;
+  Ordinary = 3;
+  Revoked = 4;
+}
+
+message UserResponse {
+  string id = 1;
+  string memberId = 2;
+  UserMemberType memberType = 3;
+  string name = 4;
+  string email = 5;
+  int32 graduationYear = 6;
+}
+
+service User {
+  rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse);
+}
+
+message ListUsersResponse {
+  repeated UserResponse users = 1;
+}
