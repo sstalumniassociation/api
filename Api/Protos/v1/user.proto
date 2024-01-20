@@ -1,5 +1,6 @@
 syntax = "proto3";
 
+import "google/protobuf/field_mask.proto";
 import "google/protobuf/empty.proto";
 import "google/api/annotations.proto";
 
@@ -14,7 +15,7 @@ enum UserMemberType {
   Revoked = 4;
 }
 
-message UserResponse {
+message User {
   string id = 1;
   string memberId = 2;
   UserMemberType memberType = 3;
@@ -24,15 +25,83 @@ message UserResponse {
 }
 
 // User service
-service User {
-  // List all users, restricted route
-  rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse) {
+service UserService {
+  // List all users, restricted to EXCO
+  rpc ListUsers (ListUsersRequest) returns (ListUsersResponse) {
     option (google.api.http) = {
-      get: "/v1/user"
+      get: "/v1/users"
     };
   };
+
+  // Get user information, restricted to authenticated users
+  rpc GetUser (GetUserRequest) returns (User) {
+    option (google.api.http) = {
+      get: "/v1/users/{id}"
+    };
+  };
+
+  // Create user
+  rpc CreateUser (CreateUserRequest) returns (User) {
+    option (google.api.http) = {
+      post: "/v1/users"
+      body: "user"
+    };
+  };
+
+  // Batch create users
+  rpc BatchCreateUsers (BatchCreateUsersRequest) returns (BatchCreateUsersResponse) {
+    option (google.api.http) = {
+      post: "/v1/users:batchCreate"
+      body: "*"
+    };
+  }
+
+  // Update user
+  rpc UpdateUser (UpdateUserRequest) returns (User) {
+    option (google.api.http) = {
+      patch: "/v1/users/{user.id}"
+      body: "user"
+    };
+  }
+
+  // Delete user
+  rpc DeleteUser (DeleteUserRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      delete: "/v1/users/{id}"
+    };
+  }
+}
+
+message ListUsersRequest {
+  int32 pageSize = 1;
+  string pageToken = 2;
 }
 
 message ListUsersResponse {
-  repeated UserResponse users = 1;
+  repeated User users = 1;
+}
+
+message GetUserRequest {
+  string id = 1;
+}
+
+message CreateUserRequest {
+  User user = 1;
+}
+
+message BatchCreateUsersRequest {
+  repeated CreateUserRequest requests = 1;
+}
+
+message BatchCreateUsersResponse {
+  repeated User users = 1;
+}
+
+message UpdateUserRequest {
+  User user = 1;
+  google.protobuf.FieldMask updateMask = 2;
+}
+
+message DeleteUserRequest {
+  string id = 1;
 }

@@ -1,18 +1,48 @@
+using Api.Context;
+using Api.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.EntityFrameworkCore;
 using User.V1;
 
 namespace Api.Services.V1;
 
-public class UserServiceV1(ILogger<UserServiceV1> logger): User.V1.User.UserBase
+/// <inheritdoc />
+public class UserServiceV1(ILogger<UserServiceV1> logger, AppDbContext dbContext) : UserService.UserServiceBase
 {
-    public override Task<ListUsersResponse> ListUsers(Empty request, ServerCallContext context)
+    public override async Task<ListUsersResponse> ListUsers(ListUsersRequest request, ServerCallContext context)
     {
-        return Task.FromResult(new ListUsersResponse
+        return new ListUsersResponse
         {
             Users =
             {
-            }
-        });
+                dbContext.Users.Select(u => u.ToGrpcUser())
+            },
+        };
+    }
+
+    public override Task<User.V1.User> GetUser(GetUserRequest request, ServerCallContext context)
+    {
+        return base.GetUser(request, context);
+    }
+
+    public override Task<User.V1.User> CreateUser(CreateUserRequest request, ServerCallContext context)
+    {
+        return base.CreateUser(request, context);
+    }
+
+    public override Task<BatchCreateUsersResponse> BatchCreateUsers(BatchCreateUsersRequest request, ServerCallContext context)
+    {
+        return base.BatchCreateUsers(request, context);
+    }
+
+    public override Task<User.V1.User> UpdateUser(UpdateUserRequest request, ServerCallContext context)
+    {
+        return base.UpdateUser(request, context);
+    }
+
+    public override Task<Empty> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+    {
+        return base.DeleteUser(request, context);
     }
 }

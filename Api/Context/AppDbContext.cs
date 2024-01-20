@@ -11,8 +11,8 @@ public partial class AppDbContext : DbContext
     }
     
     public DbSet<Entities.User> Users { get; set;  }
-    public DbSet<Event> Events { get; set; }
-    public DbSet<Article> Articles { get; set; }
+    public DbSet<Entities.Event> Events { get; set; }
+    public DbSet<Entities.Article> Articles { get; set; }
     public DbSet<UserEvent> UserEvents { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

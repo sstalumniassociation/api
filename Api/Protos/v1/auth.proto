@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+import "google/protobuf/field_mask.proto";
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+
+package auth.v1;
+
+// Auth service
+service AuthService {
+  // Verify a user
+  rpc VerifyUser (VerifyUserRequest) returns (VerifyUserResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/verify"
+      body: "*"
+    };
+  };
+}
+
+message VerifyUserRequest {
+  string email = 1;
+}
+
+message VerifyUserResponse {
+  string id = 1;
+  bool linked = 2;
+}

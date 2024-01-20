@@ -40,7 +40,10 @@ using (var scope = app.Services.CreateScope())
     await db.Database.MigrateAsync();
 }
 
+app.MapGrpcService<ArticleServiceV1>();
 app.MapGrpcService<UserServiceV1>();
+app.MapGrpcService<EventServiceV1>();
+app.MapGrpcService<AuthServiceV1>();
 
 app.UseSwagger();
 app.UseSwaggerUI(c => { c.SwaggerEndpoint("/swagger/v1/swagger.json", "SST Alumni Association API v1"); });
