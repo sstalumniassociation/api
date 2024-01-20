@@ -1,9 +1,11 @@
 syntax = "proto3";
 
 import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
 
 package user.v1;
 
+// The type of a member
 enum UserMemberType {
   Exco = 0;
   Associate = 1;
@@ -21,8 +23,14 @@ message UserResponse {
   int32 graduationYear = 6;
 }
 
+// User service
 service User {
-  rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse);
+  // List all users, restricted route
+  rpc ListUsers (google.protobuf.Empty) returns (ListUsersResponse) {
+    option (google.api.http) = {
+      get: "/v1/user"
+    };
+  };
 }
 
 message ListUsersResponse {

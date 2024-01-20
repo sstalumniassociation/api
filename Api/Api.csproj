@@ -7,6 +7,9 @@
         <InvariantGlobalization>true</InvariantGlobalization>
         <PublishAot>true</PublishAot>
         <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <IncludeHttpRuleProtos>true</IncludeHttpRuleProtos>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <JsonSerializerIsReflectionEnabledByDefault>true</JsonSerializerIsReflectionEnabledByDefault>
     </PropertyGroup>
 
     <ItemGroup>
@@ -21,6 +24,11 @@
 
     <ItemGroup>
       <PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
+      <PackageReference Include="Microsoft.AspNetCore.Grpc.JsonTranscoding" Version="8.0.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.8.1" />
+      <PackageReference Include="OpenTelemetry.Exporter.Console" Version="1.7.0" />
+      <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
+      <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.7.0" />
     </ItemGroup>
 
 </Project>

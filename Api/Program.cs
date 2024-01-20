@@ -1,40 +1,37 @@
-using System.Text.Json.Serialization;
 using Api.Services.V1;
+using Microsoft.OpenApi.Models;
+using OpenTelemetry.Trace;
 
 var builder = WebApplication.CreateSlimBuilder(args);
 
-builder.Services.ConfigureHttpJsonOptions(options =>
+builder.Services.AddOpenTelemetry()
+    .WithTracing(tracerProviderBuilder => tracerProviderBuilder
+        .AddAspNetCoreInstrumentation()
+        .AddConsoleExporter());
+
+builder.Services
+    .AddGrpc()
+    .AddJsonTranscoding();
+
+builder.Services.AddSwaggerGen(c =>
 {
-    options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppJsonSerializerContext.Default);
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "SST Alumni Association API", Version = "v1" });
+
+    var filePath = Path.Combine(AppContext.BaseDirectory, "Api.xml");
+    c.IncludeXmlComments(filePath);
+    c.IncludeGrpcXmlComments(filePath, includeControllerXmlComments: true);
 });
 
-builder.Services.AddGrpc();
+builder.Services.AddGrpcSwagger();
 
 var app = builder.Build();
 
 app.MapGrpcService<UserServiceV1>();
 
-var sampleTodos = new Todo[]
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    new(1, "Walk the dog"),
-    new(2, "Do the dishes", DateOnly.FromDateTime(DateTime.Now)),
-    new(3, "Do the laundry", DateOnly.FromDateTime(DateTime.Now.AddDays(1))),
-    new(4, "Clean the bathroom"),
-    new(5, "Clean the car", DateOnly.FromDateTime(DateTime.Now.AddDays(2)))
-};
-
-var todosApi = app.MapGroup("/todos");
-todosApi.MapGet("/", () => sampleTodos);
-todosApi.MapGet("/{id}", (int id) =>
-    sampleTodos.FirstOrDefault(a => a.Id == id) is { } todo
-        ? Results.Ok(todo)
-        : Results.NotFound());
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "SST Alumni Association API v1");
+});
 
 app.Run();
-
-public record Todo(int Id, string? Title, DateOnly? DueBy = null, bool IsComplete = false);
-
-[JsonSerializable(typeof(Todo[]))]
-internal partial class AppJsonSerializerContext : JsonSerializerContext
-{
-}
