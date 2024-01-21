@@ -1,15 +1,20 @@
+using Api.Authorization;
 using Api.Context;
 using Api.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using User.V1;
+using Enum = System.Enum;
+using UserMemberType = Api.Entities.UserMemberType;
 
 namespace Api.Services.V1;
 
 /// <inheritdoc />
 public class UserServiceV1(ILogger<UserServiceV1> logger, AppDbContext dbContext) : UserService.UserServiceBase
 {
+    [AuthorizeMembers(UserMemberType.Exco)]
     public override async Task<ListUsersResponse> ListUsers(ListUsersRequest request, ServerCallContext context)
     {
         return new ListUsersResponse
