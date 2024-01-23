@@ -33,20 +33,26 @@ service UserService {
     };
   };
 
-  // Get user information, restricted to authenticated users
+  // Get user information by Firebase ID, restricted to authenticated users
   rpc GetUser (GetUserRequest) returns (User) {
     option (google.api.http) = {
-      get: "/v1/users/{id}"
+      get: "/v1/users/{firebaseId}"
     };
   };
 
-  // Create user
+  // Bind user to a Firebase ID
+  rpc BindUser (BindUserRequest) returns (User) {
+    option (google.api.http) = {
+      post: "/v1/users/{id}/bind"
+    };
+  };
+  
+  // Create users
   rpc CreateUser (CreateUserRequest) returns (User) {
     option (google.api.http) = {
       post: "/v1/users"
-      body: "user"
     };
-  };
+  }
 
   // Batch create users
   rpc BatchCreateUsers (BatchCreateUsersRequest) returns (BatchCreateUsersResponse) {
@@ -82,7 +88,12 @@ message ListUsersResponse {
 }
 
 message GetUserRequest {
+  string firebaseId = 1;
+}
+
+message BindUserRequest {
   string id = 1;
+  string firebaseId = 2;
 }
 
 message CreateUserRequest {

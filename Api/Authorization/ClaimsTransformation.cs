@@ -9,7 +9,7 @@ public class ClaimsTransformation(AppDbContext dbContext): IClaimsTransformation
 {
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
-        var sub = principal.Claims.SingleOrDefault(c => c.Type == "user_id");
+        var sub = principal.Claims.SingleOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
         if (sub is null)
         {
             return principal;
