@@ -50,13 +50,24 @@ public class UserServiceV1(ILogger<UserServiceV1> logger, AppDbContext dbContext
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Weird email."));
         }
 
+        var firebaseId = context.GetHttpContext().User.Claims.SingleOrDefault(c => c.Type == "user_id");
+        if (firebaseId is null)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, "Firebase ID does not exist in token."));
+        }
+
         var user = await dbContext.Users.FindAsync(request.Id);
         if (user is null || user.Email != email.Value)
         {
             throw new RpcException(new Status(StatusCode.PermissionDenied, "Mailbox issue, wrong email."));
         }
 
-        user.FirebaseId = request.FirebaseId;
+        if (!string.IsNullOrWhiteSpace(user.FirebaseId))
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Firebase ID already set for user."));
+        }
+
+        user.FirebaseId = firebaseId.Value;
 
         await dbContext.SaveChangesAsync();
 
@@ -71,30 +82,42 @@ public class UserServiceV1(ILogger<UserServiceV1> logger, AppDbContext dbContext
         return user.Entity.ToGrpcUser();
     }
 
+    [AuthorizeMembers(UserMemberType.Exco)]
     public override async Task<BatchCreateUsersResponse> BatchCreateUsers(BatchCreateUsersRequest request,
         ServerCallContext context)
     {
         await using var txn = await dbContext.Database.BeginTransactionAsync();
 
-        var users = new List<User.V1.User>();
+        var users = new List<Entities.User>();
         foreach (var r in request.Requests)
         {
-            var u = await dbContext.Users.AddAsync(r.User.ToUser());
-            users.Add(u.Entity.ToGrpcUser());
+            var us = r.User.ToUser();
+            var u = await dbContext.Users.FindAsync(us.Id);
+            if (u is null)
+            {
+                users.Add(us);
+                await dbContext.Users.AddAsync(us);
+            }
+            else
+            {
+                u.MemberId = us.MemberId;
+            }
         }
+
+        await txn.CommitAsync();
 
         await dbContext.SaveChangesAsync();
 
         return new BatchCreateUsersResponse
         {
-            Users = { users }
+            Users = { users.Select(u => u.ToGrpcUser()) }
         };
     }
 
     [AuthorizeMembers(UserMemberType.Exco)]
     public override async Task<User.V1.User> UpdateUser(UpdateUserRequest request, ServerCallContext context)
     {
-        var user = await dbContext.Users.FirstAsync(c => c.Id.ToString() == request.User.Id);
+        var user = await dbContext.Users.SingleAsync(c => c.Id.ToString() == request.User.Id);
         if (user is null)
         {
             throw new RpcException(new Status(StatusCode.NotFound, "User disappeared into the abyss."));
@@ -103,16 +126,53 @@ public class UserServiceV1(ILogger<UserServiceV1> logger, AppDbContext dbContext
         var diff = new User.V1.User();
         request.UpdateMask.Merge(request.User, diff);
 
-        if (!string.IsNullOrWhiteSpace(diff.MemberId))
+        if (request.UpdateMask.Paths.Contains("memberId"))
         {
             user.MemberId = diff.MemberId;
         }
-        
-        return diff;
+
+        if (request.UpdateMask.Paths.Contains("name"))
+        {
+            user.Name = diff.Name;
+        }
+
+        if (request.UpdateMask.Paths.Contains("email"))
+        {
+            user.Email = diff.Email;
+        }
+
+        if (request.UpdateMask.Paths.Contains("graduationYear"))
+        {
+            user.GraduationYear = diff.GraduationYear;
+        }
+
+        if (request.UpdateMask.Paths.Contains("memberType"))
+        {
+            user.MemberType = diff.MemberType.ToUserMemberType();
+        }
+
+        await dbContext.SaveChangesAsync();
+
+        return user.ToGrpcUser();
     }
 
-    public override Task<Empty> DeleteUser(DeleteUserRequest request, ServerCallContext context)
+    [AuthorizeMembers(UserMemberType.Exco)]
+    public override async Task<Empty> DeleteUser(DeleteUserRequest request, ServerCallContext context)
     {
-        return base.DeleteUser(request, context);
+        var id = context.GetHttpContext().User.Claims.Single(c => c.Type == ClaimTypes.NameIdentifier);
+        if (request.Id == id.Value)
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Cannot suicide."));
+        }
+
+        var user = await dbContext.Users.SingleAsync(c => c.Id.ToString() == request.Id);
+        if (user is null)
+        {
+            throw new RpcException(new Status(StatusCode.NotFound, "User disappeared into the abyss."));
+        }
+
+        dbContext.Users.Remove(user);
+
+        return new Empty();
     }
 }

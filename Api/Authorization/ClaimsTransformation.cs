@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Api.Authorization;
 
-public class ClaimsTransformation(AppDbContext dbContext): IClaimsTransformation
+public class ClaimsTransformation(AppDbContext dbContext) : IClaimsTransformation
 {
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
@@ -21,10 +21,27 @@ public class ClaimsTransformation(AppDbContext dbContext): IClaimsTransformation
             return principal;
         }
 
-        var ci = new ClaimsIdentity();
-        ci.AddClaim(new Claim(ClaimTypes.Role, user.MemberType.ToString()));
+        var identity = principal.Identity as ClaimsIdentity;
+        if (identity is null)
+        {
+            return principal;
+        }
+
+        var existingRoleClaim = identity.FindFirst(ClaimTypes.Role);
+        if (existingRoleClaim is not null)
+        {
+            identity.RemoveClaim(existingRoleClaim);
+        }
+
+        identity.AddClaim(new Claim(ClaimTypes.Role, user.MemberType.ToString()));
         
-        principal.AddIdentity(ci);
+        var existingNameIdentifierClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
+        if (existingNameIdentifierClaim is not null)
+        {
+            identity.RemoveClaim(existingNameIdentifierClaim);
+        }
+        
+        identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
 
         return principal;
     }

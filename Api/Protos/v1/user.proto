@@ -93,7 +93,6 @@ message GetUserRequest {
 
 message BindUserRequest {
   string id = 1;
-  string firebaseId = 2;
 }
 
 message CreateUserRequest {
