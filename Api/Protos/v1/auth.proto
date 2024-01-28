@@ -15,6 +15,12 @@ service AuthService {
       body: "*"
     };
   };
+  
+  rpc WhoAmI (WhoAmIRequest) returns (WhoAmIResponse) {
+    option (google.api.http) = {
+      get: "/v1/auth/{firebaseId}"
+    };
+  }
 }
 
 message VerifyUserRequest {
@@ -22,6 +28,15 @@ message VerifyUserRequest {
 }
 
 message VerifyUserResponse {
+  string id = 1;
+  bool linked = 2;
+}
+
+message WhoAmIRequest {
+  string email = 1;
+}
+
+message WhoAmIResponse {
   string id = 1;
   bool linked = 2;
 }
