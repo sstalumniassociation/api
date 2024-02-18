@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Api.Context;
+using Api.Entities;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,8 +22,7 @@ public class ClaimsTransformation(AppDbContext dbContext) : IClaimsTransformatio
             return principal;
         }
 
-        var identity = principal.Identity as ClaimsIdentity;
-        if (identity is null)
+        if (principal.Identity is not ClaimsIdentity identity)
         {
             return principal;
         }
@@ -33,14 +33,28 @@ public class ClaimsTransformation(AppDbContext dbContext) : IClaimsTransformatio
             identity.RemoveClaim(existingRoleClaim);
         }
 
-        identity.AddClaim(new Claim(ClaimTypes.Role, user.MemberType.ToString()));
-        
+        switch (user)
+        {
+            case Entities.Member m:
+                identity.AddClaim(new Claim(ClaimTypes.Role, m.Membership.ToString()));
+                break;
+            case ServiceAccount:
+                identity.AddClaim(new Claim(ClaimTypes.Role, nameof(ServiceAccount)));
+                break;
+            case Employee:
+                identity.AddClaim(new Claim(ClaimTypes.Role, nameof(Employee)));
+                break;
+            case SystemAdmin:
+                identity.AddClaim(new Claim(ClaimTypes.Role, nameof(SystemAdmin)));
+                break;
+        }
+
         var existingNameIdentifierClaim = identity.FindFirst(ClaimTypes.NameIdentifier);
         if (existingNameIdentifierClaim is not null)
         {
             identity.RemoveClaim(existingNameIdentifierClaim);
         }
-        
+
         identity.AddClaim(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
 
         return principal;

@@ -15,13 +15,13 @@ message Event {
   string description = 3;
   string location = 4;
   string badgeImage = 5;
-  google.protobuf.Timestamp  startDateTime = 6;
-  google.protobuf.Timestamp  endDateTime = 7;
+  google.protobuf.Timestamp start_date_time = 6;
+  google.protobuf.Timestamp end_date_time = 7;
   repeated EventUser attendees = 8;
 }
 
 message EventUser {
-  string admissionKey = 1;
+  string admission_key = 1;
   user.v1.User user = 2;
 }
 
@@ -80,8 +80,8 @@ service EventService {
 }
 
 message ListEventsRequest {
-  int32 pageSize = 1;
-  string pageToken = 2;
+  int32 page_size = 1;
+  string page_token = 2;
 }
 
 message ListEventsResponse {
@@ -102,7 +102,7 @@ message CreateEventRequest {
 
 message UpdateEventRequest {
   Event event = 1;
-  google.protobuf.FieldMask updateMask = 2;
+  google.protobuf.FieldMask update_mask = 2;
 }
 
 message DeleteEventRequest {

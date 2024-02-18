@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Api.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -51,12 +51,14 @@ namespace Api.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uuid", nullable: false),
-                    MemberId = table.Column<string>(type: "text", nullable: false),
                     FirebaseId = table.Column<string>(type: "text", nullable: false),
                     Name = table.Column<string>(type: "text", nullable: false),
                     Email = table.Column<string>(type: "text", nullable: false),
-                    GraduationYear = table.Column<int>(type: "integer", nullable: false),
-                    MemberType = table.Column<int>(type: "integer", nullable: false)
+                    Discriminator = table.Column<string>(type: "character varying(21)", maxLength: 21, nullable: false),
+                    Membership = table.Column<string>(type: "text", nullable: true),
+                    MemberId = table.Column<string>(type: "text", nullable: true),
+                    GraduationYear = table.Column<int>(type: "integer", nullable: true),
+                    ServiceAccountType = table.Column<int>(type: "integer", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -111,6 +113,16 @@ namespace Api.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Discriminator", "Email", "FirebaseId", "GraduationYear", "MemberId", "Membership", "Name" },
+                values: new object[] { new Guid("829bc4dc-2d8f-46df-acbb-c52c0e7f958f"), "AlumniMember", "tan_zheng_jie@sstaa.org", "5ZPERFPTvfMfxwhH7SGsOmXqSco2", null, "EXCO-1", "Exco", "Tan Zheng Jie" });
+
+            migrationBuilder.InsertData(
+                table: "Users",
+                columns: new[] { "Id", "Discriminator", "Email", "FirebaseId", "Name" },
+                values: new object[] { new Guid("df90f5ea-a236-413f-a6c1-ca9197427631"), "SystemAdmin", "qinguan20040914@gmail.com", "GuZZVeOdlhNsf5dZGQmU2yV1Ox33", "Qin Guan" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_EventUser_EventsId",

@@ -6,8 +6,21 @@ import "google/api/annotations.proto";
 
 package user.v1;
 
-// The type of a member
-enum UserMemberType {
+message User {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string firebase_id = 4;
+
+  oneof user_type {
+    Member member = 100;
+    Teacher teacher = 101;
+    ServiceAccount service_account = 102;
+    SystemAdmin system_admin = 103;
+  }
+}
+
+enum Membership {
   Exco = 0;
   Associate = 1;
   Affiliate = 2;
@@ -15,13 +28,38 @@ enum UserMemberType {
   Revoked = 4;
 }
 
-message User {
-  string id = 1;
-  string memberId = 2;
-  UserMemberType memberType = 3;
-  string name = 4;
-  string email = 5;
-  int32 graduationYear = 6;
+message Member {
+  Membership membership = 1;
+  string member_id = 2;
+
+  oneof member_type {
+    AlumniMember alumni_member = 3;
+    EmployeeMember employee_member = 4;
+  }
+}
+
+message AlumniMember {
+  // If a member is an associate and have never graduated from SST, this field will be empty.
+  optional int32 graduation_year = 1;
+}
+
+message EmployeeMember {
+  // If a member was an ex-student of SST, this field will contain their graduation year.
+  optional int32 graduation_year = 1;
+}
+
+enum ServiceAccountType {
+  GuardHouse = 0;
+}
+
+message ServiceAccount {
+  ServiceAccountType service_account_type = 1;
+}
+
+message SystemAdmin {
+}
+
+message Teacher {
 }
 
 // User service
@@ -33,10 +71,10 @@ service UserService {
     };
   };
 
-  // Get user information by Firebase ID, restricted to authenticated users
+  // Get user information, restricted to authenticated users
   rpc GetUser (GetUserRequest) returns (User) {
     option (google.api.http) = {
-      get: "/v1/users/{firebaseId}"
+      get: "/v1/users/{id}"
     };
   };
 
@@ -46,7 +84,7 @@ service UserService {
       post: "/v1/users/{id}/bind"
     };
   };
-  
+
   // Create users
   rpc CreateUser (CreateUserRequest) returns (User) {
     option (google.api.http) = {
@@ -79,8 +117,8 @@ service UserService {
 }
 
 message ListUsersRequest {
-  int32 pageSize = 1;
-  string pageToken = 2;
+  int32 page_size = 1;
+  string page_token = 2;
 }
 
 message ListUsersResponse {
@@ -88,7 +126,7 @@ message ListUsersResponse {
 }
 
 message GetUserRequest {
-  string firebaseId = 1;
+  string id = 1;
 }
 
 message BindUserRequest {
@@ -109,7 +147,7 @@ message BatchCreateUsersResponse {
 
 message UpdateUserRequest {
   User user = 1;
-  google.protobuf.FieldMask updateMask = 2;
+  google.protobuf.FieldMask update_mask = 2;
 }
 
 message DeleteUserRequest {

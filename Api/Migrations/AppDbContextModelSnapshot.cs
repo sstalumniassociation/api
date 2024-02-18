@@ -99,6 +99,11 @@ namespace Api.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Discriminator")
+                        .IsRequired()
+                        .HasMaxLength(21)
+                        .HasColumnType("character varying(21)");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("text");
@@ -106,16 +111,6 @@ namespace Api.Migrations
                     b.Property<string>("FirebaseId")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int>("GraduationYear")
-                        .HasColumnType("integer");
-
-                    b.Property<string>("MemberId")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("MemberType")
-                        .HasColumnType("integer");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -126,10 +121,11 @@ namespace Api.Migrations
                     b.HasIndex("FirebaseId")
                         .IsUnique();
 
-                    b.HasIndex("MemberId")
-                        .IsUnique();
-
                     b.ToTable("Users");
+
+                    b.HasDiscriminator<string>("Discriminator").HasValue("User");
+
+                    b.UseTphMappingStrategy();
                 });
 
             modelBuilder.Entity("Api.Entities.UserEvent", b =>
@@ -166,6 +162,92 @@ namespace Api.Migrations
                     b.HasIndex("EventsId");
 
                     b.ToTable("EventUser");
+                });
+
+            modelBuilder.Entity("Api.Entities.Employee", b =>
+                {
+                    b.HasBaseType("Api.Entities.User");
+
+                    b.HasDiscriminator().HasValue("Employee");
+                });
+
+            modelBuilder.Entity("Api.Entities.Member", b =>
+                {
+                    b.HasBaseType("Api.Entities.User");
+
+                    b.Property<string>("MemberId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Membership")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasIndex("MemberId")
+                        .IsUnique();
+
+                    b.HasDiscriminator().HasValue("Member");
+                });
+
+            modelBuilder.Entity("Api.Entities.ServiceAccount", b =>
+                {
+                    b.HasBaseType("Api.Entities.User");
+
+                    b.Property<int>("ServiceAccountType")
+                        .HasColumnType("integer");
+
+                    b.HasDiscriminator().HasValue("ServiceAccount");
+                });
+
+            modelBuilder.Entity("Api.Entities.SystemAdmin", b =>
+                {
+                    b.HasBaseType("Api.Entities.User");
+
+                    b.HasDiscriminator().HasValue("SystemAdmin");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("df90f5ea-a236-413f-a6c1-ca9197427631"),
+                            Email = "qinguan20040914@gmail.com",
+                            FirebaseId = "GuZZVeOdlhNsf5dZGQmU2yV1Ox33",
+                            Name = "Qin Guan"
+                        });
+                });
+
+            modelBuilder.Entity("Api.Entities.AlumniMember", b =>
+                {
+                    b.HasBaseType("Api.Entities.Member");
+
+                    b.Property<int?>("GraduationYear")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("integer")
+                        .HasColumnName("GraduationYear");
+
+                    b.HasDiscriminator().HasValue("AlumniMember");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("829bc4dc-2d8f-46df-acbb-c52c0e7f958f"),
+                            Email = "tan_zheng_jie@sstaa.org",
+                            FirebaseId = "5ZPERFPTvfMfxwhH7SGsOmXqSco2",
+                            Name = "Tan Zheng Jie",
+                            MemberId = "EXCO-1",
+                            Membership = "Exco"
+                        });
+                });
+
+            modelBuilder.Entity("Api.Entities.EmployeeMember", b =>
+                {
+                    b.HasBaseType("Api.Entities.Member");
+
+                    b.Property<int?>("GraduationYear")
+                        .ValueGeneratedOnUpdateSometimes()
+                        .HasColumnType("integer")
+                        .HasColumnName("GraduationYear");
+
+                    b.HasDiscriminator().HasValue("EmployeeMember");
                 });
 
             modelBuilder.Entity("Api.Entities.UserEvent", b =>

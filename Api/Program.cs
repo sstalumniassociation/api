@@ -1,8 +1,12 @@
 using Api.Authorization;
+using Api.Authorization.Admin;
+using Api.Authorization.Member;
+using Api.Authorization.UserData;
 using Api.Context;
 using Api.Services.V1;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -18,6 +22,13 @@ builder.Services.AddOpenTelemetry()
         .AddAspNetCoreInstrumentation()
         .AddConsoleExporter());
 
+builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
+
+builder.Services.AddSingleton<IAuthorizationHandler, AdminSystemAdminHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, AdminExcoHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, MemberNonRevokedHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, UserDataHandler>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -32,7 +43,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy(Policies.Admin, policy =>
+        policy.AddRequirements(new AdminRequirement()))
+    .AddPolicy(Policies.Member, policy =>
+        policy.AddRequirements(new MemberRequirement()))
+    .AddPolicy(Policies.UserData, policy =>
+        policy.AddRequirements(new UserDataRequirement()));
 
 builder.Services
     .AddGrpc()
@@ -80,8 +97,6 @@ builder.Services.AddNpgsql<AppDbContext>(
     builder.Configuration.GetConnectionString("Postgres")
 );
 
-builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
-
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -93,6 +108,7 @@ using (var scope = app.Services.CreateScope())
 app.UseAuthentication();
 app.UseAuthorization();
 
+// Require authorization by default and opt-out for anonymous routes
 app.MapGrpcService<ArticleServiceV1>();
 app.MapGrpcService<UserServiceV1>();
 app.MapGrpcService<EventServiceV1>();
