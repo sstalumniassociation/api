@@ -59,6 +59,13 @@ builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "SST Alumni Association API", Version = "v1" });
 
+    if (builder.Environment.IsDevelopment())
+    {
+        c.AddServer(new OpenApiServer { Description = "Development", Url = "http://localhost:5200" });
+    }
+
+    c.AddServer(new OpenApiServer { Description = "Production", Url = "https://api.sstaa.org" });
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
