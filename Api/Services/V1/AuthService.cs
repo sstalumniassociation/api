@@ -29,7 +29,7 @@ public class AuthServiceV1(AppDbContext dbContext) : AuthService.AuthServiceBase
     public override async Task<WhoAmIResponse> WhoAmI(WhoAmIRequest request, ServerCallContext context)
     {
         var id = context.GetHttpContext().User.Claims.GetNameIdentifierGuid();
-        
+
         var user = await dbContext.Users.FindAsync(id);
         if (user is null)
         {

@@ -5,7 +5,7 @@ namespace Api.Authorization;
 /// <summary>
 /// Syntax sugar for [Authorize(Policy = Policies.Admin)]
 /// </summary>
-public class AuthorizeAdminAttribute: AuthorizeAttribute
+public class AuthorizeAdminAttribute : AuthorizeAttribute
 {
     public AuthorizeAdminAttribute()
     {

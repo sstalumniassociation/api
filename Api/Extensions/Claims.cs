@@ -13,7 +13,7 @@ public static class Claims
     {
         return claims.Single(c => c.Type == ClaimTypes.NameIdentifier).Value;
     }
-    
+
     /// <summary>
     /// Retrieves the name identifier (represents <see cref="Entities.User.Id"/> as modified by <see cref="Authorization.ClaimsTransformation"/>)
     /// </summary>
