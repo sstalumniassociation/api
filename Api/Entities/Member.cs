@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Microsoft.EntityFrameworkCore;
 
 namespace Api.Entities;
@@ -28,8 +27,19 @@ public enum Membership
 [Index(nameof(MemberId), IsUnique = true)]
 public abstract class Member : User
 {
+    public Member(User user) : base(user)
+    {
+    }
+
+    public Member(Guid id, string name, string email, string firebaseId, Membership membership, string memberId) :
+        base(id, name, email, firebaseId)
+    {
+        Membership = membership;
+        MemberId = memberId;
+    }
+
     public Membership Membership { get; set; }
-    
+
     /// <summary>
     /// Internal member ID used for tracking by SSTAA admin.
     /// </summary>
@@ -41,25 +51,16 @@ public abstract class Member : User
 /// </summary>
 public class AlumniMember : Member
 {
-    private int? _graduationYear;
-
-    /// <summary>
-    /// In the case of an associate member, they may have studied in SST but not graduated. In this case, <see cref="GraduationYear"/> will be null.
-    /// </summary>
-    public int? GraduationYear
+    public AlumniMember(User user) : base(user)
     {
-        get => _graduationYear;
-        set
-        {
-            _graduationYear = value switch
-            {
-                null when Membership != Membership.Associate =>
-                    throw new Exception("Graduation year is required when membership is not associate."),
-                <= 2010 => throw new Exception("Graduation year cannot be less than 2010."),
-                _ => value
-            };
-        }
     }
+
+    public AlumniMember(Guid id, string name, string email, string firebaseId, Membership membership, string memberId) :
+        base(id, name, email, firebaseId, membership, memberId)
+    {
+    }
+
+    public int? GraduationYear { get; set; }
 }
 
 /// <summary>
@@ -71,21 +72,14 @@ public class AlumniMember : Member
 /// </summary>
 public class EmployeeMember : Member
 {
-    private int? _graduationYear;
-
-    /// <summary>
-    /// In the case that the employee is an ex-SST student, this would indicate their graduation year.
-    /// </summary>
-    public int? GraduationYear
+    public EmployeeMember(User user) : base(user)
     {
-        get => _graduationYear;
-        set
-        {
-            _graduationYear = value switch
-            {
-                <= 2010 => throw new Exception("Graduation year cannot be less than 2010."),
-                _ => value
-            };
-        }
     }
+
+    public EmployeeMember(Guid id, string name, string email, string firebaseId, Membership membership, string memberId)
+        : base(id, name, email, firebaseId, membership, memberId)
+    {
+    }
+
+    public int? GraduationYear { get; set; }
 };

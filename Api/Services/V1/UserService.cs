@@ -1,11 +1,15 @@
+using System.Security.Claims;
 using Api.Authorization;
-using Api.Authorization.UserData;
+using Api.Authorization.OwnerOrAdmin;
 using Api.Context;
 using Api.Extensions;
 using Google.Protobuf.WellKnownTypes;
 using Grpc.Core;
 using Microsoft.AspNetCore.Authorization;
 using User.V1;
+using Employee = Api.Entities.Employee;
+using EmployeeMember = Api.Entities.EmployeeMember;
+using SystemAdmin = Api.Entities.SystemAdmin;
 
 namespace Api.Services.V1;
 
@@ -167,7 +171,7 @@ public class UserServiceV1(
     {
         var authorized =
             await authorizationService.AuthorizeAsync(context.GetHttpContext().User, request.Id,
-                UserDataOperations.Read);
+                OwnerOrAdminOperations.Read);
         if (!authorized.Succeeded)
         {
             throw new RpcException(new Status(StatusCode.PermissionDenied,
@@ -183,14 +187,58 @@ public class UserServiceV1(
         return user.ToGrpcUser();
     }
 
+    [Authorize]
     public override async Task<User.V1.User> BindUser(BindUserRequest request, ServerCallContext context)
     {
-        return await base.BindUser(request, context);
+        var email = context.GetHttpContext().User.Claims.SingleOrDefault(c => c.Type == ClaimTypes.Email);
+        if (email is null)
+        {
+            throw new RpcException(new Status(StatusCode.PermissionDenied, "Email does not exist in token."));
+        }
+
+        var firebaseId = context.GetHttpContext().User.Claims.SingleOrDefault(c => c.Type == "user_id");
+        if (firebaseId is null)
+        {
+            throw new RpcException(new Status(StatusCode.Internal, "Firebase UID does not exist in token."));
+        }
+
+        var user = await dbContext.Users.FindAsync(Guid.Parse(request.Id));
+        if (user is null || user.Email != email.Value)
+        {
+            throw new RpcException(new Status(StatusCode.PermissionDenied, ""));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.FirebaseId))
+        {
+            throw new RpcException(new Status(StatusCode.FailedPrecondition, "Firebase ID already set for user."));
+        }
+
+        user.FirebaseId = firebaseId.Value;
+
+        await dbContext.SaveChangesAsync();
+
+        return user.ToGrpcUser();
     }
 
+    [AuthorizeAdmin]
     public override async Task<User.V1.User> CreateUser(CreateUserRequest request, ServerCallContext context)
     {
-        return await base.CreateUser(request, context);
+        var user = request.User.ToUser();
+
+        switch (user)
+        {
+            case Entities.Employee:
+            case Entities.AlumniMember:
+            case Entities.EmployeeMember:
+            case Entities.ServiceAccount:
+            case SystemAdmin:
+            default:
+                throw new Exception("Unrecognized user type.");
+        }
+
+        // var user = await dbContext.Users.AddAsync(request.User.ToUser());
+        // await dbContext.SaveChangesAsync();
+        // return user.Entity.ToGrpcUser();
     }
 
     public override async Task<BatchCreateUsersResponse> BatchCreateUsers(BatchCreateUsersRequest request,
@@ -199,8 +247,16 @@ public class UserServiceV1(
         return await base.BatchCreateUsers(request, context);
     }
 
+    [Authorize]
     public override async Task<User.V1.User> UpdateUser(UpdateUserRequest request, ServerCallContext context)
     {
+        var diff = new User.V1.User();
+        request.UpdateMask.Merge(request.User, diff);
+
+        if (request.UpdateMask.Paths.Contains("firebase_id"))
+        {
+        }
+
         return await base.UpdateUser(request, context);
     }
 

@@ -1,9 +1,10 @@
 using Api.Authorization;
 using Api.Authorization.Admin;
 using Api.Authorization.Member;
-using Api.Authorization.UserData;
+using Api.Authorization.OwnerOrAdmin;
 using Api.Context;
 using Api.Services.V1;
+using Calzolari.Grpc.AspNetCore.Validation;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -27,7 +28,7 @@ builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminSystemAdminHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, AdminExcoHandler>();
 builder.Services.AddSingleton<IAuthorizationHandler, MemberNonRevokedHandler>();
-builder.Services.AddSingleton<IAuthorizationHandler, UserDataHandler>();
+builder.Services.AddSingleton<IAuthorizationHandler, OwnerOrAdminHandler>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -48,12 +49,15 @@ builder.Services.AddAuthorizationBuilder()
         policy.AddRequirements(new AdminRequirement()))
     .AddPolicy(Policies.Member, policy =>
         policy.AddRequirements(new MemberRequirement()))
-    .AddPolicy(Policies.UserData, policy =>
-        policy.AddRequirements(new UserDataRequirement()));
+    .AddPolicy(Policies.OwnerOrAdmin, policy =>
+        policy.AddRequirements(new OwnerOrAdminRequirement()));
 
 builder.Services
-    .AddGrpc()
+    .AddGrpc(options => options.EnableMessageValidation())
     .AddJsonTranscoding();
+
+builder.Services.AddValidator<CreateUserRequestValidator>();
+builder.Services.AddGrpcValidation();
 
 builder.Services.AddSwaggerGen(c =>
 {

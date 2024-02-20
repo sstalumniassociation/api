@@ -1,18 +1,15 @@
-using System.Security.Claims;
-using Api.Authorization.Admin;
-using Api.Entities;
 using Api.Extensions;
 using Microsoft.AspNetCore.Authorization;
 
-namespace Api.Authorization.UserData;
+namespace Api.Authorization.OwnerOrAdmin;
 
-/// <inheritdoc cref="UserDataRequirement"/>
-public class UserDataHandler(IServiceProvider serviceProvider)
-    : AuthorizationHandler<UserDataRequirement, string>
+/// <inheritdoc cref="OwnerOrAdminRequirement"/>
+public class OwnerOrAdminHandler(IServiceProvider serviceProvider)
+    : AuthorizationHandler<OwnerOrAdminRequirement, string>
 {
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
-        UserDataRequirement requirement,
+        OwnerOrAdminRequirement requirement,
         string? userId)
     {
         // Manually get service to prevent circular dependencies
@@ -28,7 +25,7 @@ public class UserDataHandler(IServiceProvider serviceProvider)
         }
 
         // If a user is reading their own data, grant permission
-        if (requirement.Name == UserDataOperations.Read.Name &&
+        if (requirement.Name == OwnerOrAdminOperations.Read.Name &&
             userId == context.User.Claims.GetNameIdentifier())
         {
             context.Succeed(requirement);

@@ -44,26 +44,24 @@ public partial class AppDbContext : DbContext
 
         modelBuilder.Entity<SystemAdmin>()
             .HasData(
-                new SystemAdmin
-                {
-                    Id = Guid.Parse("df90f5ea-a236-413f-a6c1-ca9197427631"),
-                    Name = "Qin Guan",
-                    FirebaseId = "GuZZVeOdlhNsf5dZGQmU2yV1Ox33",
-                    Email = "qinguan20040914@gmail.com",
-                }
+                new SystemAdmin(
+                    id: Guid.Parse("df90f5ea-a236-413f-a6c1-ca9197427631"),
+                    name: "Qin Guan",
+                    firebaseId: "GuZZVeOdlhNsf5dZGQmU2yV1Ox33",
+                    email: "qinguan20040914@gmail.com"
+                )
             );
 
         modelBuilder.Entity<AlumniMember>()
             .HasData(
-                new AlumniMember
-                {
-                    Id = Guid.Parse("829bc4dc-2d8f-46df-acbb-c52c0e7f958f"),
-                    Name = "Tan Zheng Jie",
-                    FirebaseId = "5ZPERFPTvfMfxwhH7SGsOmXqSco2",
-                    Email = "tan_zheng_jie@sstaa.org",
-                    Membership = Membership.Exco,
-                    MemberId = "EXCO-1",
-                }
+                new AlumniMember(
+                    id: Guid.Parse("829bc4dc-2d8f-46df-acbb-c52c0e7f958f"),
+                    name: "Tan Zheng Jie",
+                    firebaseId: "5ZPERFPTvfMfxwhH7SGsOmXqSco2",
+                    email: "tan_zheng_jie@sstaa.org",
+                    membership: Membership.Exco,
+                    memberId: "EXCO-1"
+                )
             );
 
         OnModelCreatingPartial(modelBuilder);

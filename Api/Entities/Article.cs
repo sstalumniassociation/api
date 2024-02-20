@@ -1,3 +1,5 @@
+using FluentValidation;
+
 namespace Api.Entities;
 
 public class Article

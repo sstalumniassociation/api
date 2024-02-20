@@ -14,7 +14,7 @@ message User {
 
   oneof user_type {
     Member member = 100;
-    Teacher teacher = 101;
+    Employee employee = 101;
     ServiceAccount service_account = 102;
     SystemAdmin system_admin = 103;
   }
@@ -59,7 +59,7 @@ message ServiceAccount {
 message SystemAdmin {
 }
 
-message Teacher {
+message Employee {
 }
 
 // User service
@@ -78,7 +78,11 @@ service UserService {
     };
   };
 
-  // Bind user to a Firebase ID
+  // Bind user to a Firebase ID. Although this can also be done in the UpdateUser route, due to the different 
+  // permission requirement for updating FirebaseId, it would introduce a partial success state for the endpoint (where
+  // only the FirebaseId is updated of all fields provided in the UpdateMask). Therefore, a separate route exists for
+  // this specific use case. This route should be called by end-users only (not admins) as it will bind the user ID 
+  // provided to the current authenticated user.
   rpc BindUser (BindUserRequest) returns (User) {
     option (google.api.http) = {
       post: "/v1/users/{id}/bind"
@@ -89,6 +93,7 @@ service UserService {
   rpc CreateUser (CreateUserRequest) returns (User) {
     option (google.api.http) = {
       post: "/v1/users"
+      body: "*"
     };
   }
 
