@@ -1,8 +1,8 @@
 name: grpc
 
 on:
-  - push
-  - pull_request
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
@@ -10,11 +10,11 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      - uses: bufbuild/buf-setup-action@v1 
-        
+      - uses: bufbuild/buf-setup-action@v1
+
       - name: Generate
         run: buf generate SSTAlumniAssociation.Api
-        
+
       - name: Push TS code
         uses: cpina/github-action-push-to-another-repository@main
         env:
@@ -22,6 +22,6 @@ jobs:
         with:
           source-directory: gen/swift
           destination-github-username: 'sstalumniassociation'
-          destination-repository-name: 'grpc-client-swift'
+          destination-repository-name: 'grpc-client-typescript'
           user-email: bot@sstaa.org
           target-branch: main
