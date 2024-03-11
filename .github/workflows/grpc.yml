@@ -1,0 +1,27 @@
+name: grpc
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+
+      - name: Generate
+        run: buf generate SSTAlumniAssociation.Api
+
+      - name: Push TS code
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.GRPC_CLIENT_TYPESCRIPT_DEPLOY_KEY }}
+        with:
+          source-directory: gen/es/Protos
+          destination-github-username: 'sstalumniassociation'
+          destination-repository-name: 'grpc-client-typescript'
+          user-email: bot@sstaa.org
+          target-branch: main
