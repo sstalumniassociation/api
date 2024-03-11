@@ -18,9 +18,9 @@ jobs:
       - name: Push TS code
         uses: cpina/github-action-push-to-another-repository@main
         env:
-          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY_TYPESCRIPT }}
+          SSH_DEPLOY_KEY: ${{ secrets.GRPC_CLIENT_TYPESCRIPT_DEPLOY_KEY }}
         with:
-          source-directory: gen/swift
+          source-directory: gen/es/Protos
           destination-github-username: 'sstalumniassociation'
           destination-repository-name: 'grpc-client-typescript'
           user-email: bot@sstaa.org
