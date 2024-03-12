@@ -26,10 +26,10 @@
     <ItemGroup>
       <PackageReference Include="FirebaseAdmin" Version="2.4.0" />
       <PackageReference Include="Grpc.AspNetCore" Version="2.60.0" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1" />
-      <PackageReference Include="Microsoft.AspNetCore.Grpc.JsonTranscoding" Version="8.0.1" />
-      <PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.8.1" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
+      <PackageReference Include="Microsoft.AspNetCore.Grpc.JsonTranscoding" Version="8.0.3" />
+      <PackageReference Include="Microsoft.AspNetCore.Grpc.Swagger" Version="0.8.3" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.3">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
